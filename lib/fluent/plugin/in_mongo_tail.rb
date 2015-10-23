@@ -114,6 +114,7 @@ module Fluent
       when @database
         options = {}
         options.merge(@connection_options)
+        options[:database] = @database if @database
         options[:user] = @user if @user
         options[:password] = @password if @password
         Mongo::Client.new(["#{@host}:#{@port}"], options)
