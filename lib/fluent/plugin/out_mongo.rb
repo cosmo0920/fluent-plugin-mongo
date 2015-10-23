@@ -230,6 +230,15 @@ module Fluent
       authenticate(db)
     end
 
+    def get_client
+      options = {}
+      options.merge(@connection_options)
+      options[:database] = @database if @database
+      options[:user] = @user if @user
+      options[:password] = @password if @password
+      Mongo::Client.new(["#{@host}:#{@port}"], options)
+    end
+
     # Following limits are heuristic. BSON is sometimes bigger than MessagePack and JSON.
     LIMIT_BEFORE_v1_8 = 2 * 1024 * 1024  # 2MB = 4MB  / 2
     LIMIT_AFTER_v1_8 =  8 * 1024 * 1024  # 8MB = 16MB / 2
