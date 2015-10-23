@@ -122,15 +122,6 @@ module Fluent
       end
     end
 
-    def database_name
-      case
-      when @database
-        @database
-      when @url
-        Mongo::URIParser.new(@url).db_name
-      end
-    end
-
     def node_string
       case
       when @database
