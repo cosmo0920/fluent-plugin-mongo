@@ -113,13 +113,16 @@ module Fluent
       end
     end
     
-    def get_database
+    def get_client
       case
       when @database
-        authenticate(Mongo::Connection.new(@host, @port, @connection_options).db(@database))
+        options = {}
+        options.merge(@connection_options)
+        options[:user] = @user if @user
+        options[:password] = @password if @password
+        Mongo::Client.new(["#{@host}:#{@port}"], options)
       when @url
-        parser = Mongo::URIParser.new(@url)
-        parser.connection.db(parser.db_name)
+        Mongo::Client.new(@url)
       end
     end
     
