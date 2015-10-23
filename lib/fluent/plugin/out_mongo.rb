@@ -46,7 +46,7 @@ module Fluent
       require 'mongo'
       require 'msgpack'
 
-      @clients = {}
+      @collections = {}
       @connection_options = {}
       @collection_options = {:capped => false}
     end
@@ -201,7 +201,7 @@ module Fluent
 
     def get_or_create_collection(collection_name)
       collection_name = format_collection_name(collection_name)
-      return @clients[collection_name] if @clients[collection_name]
+      return @collections[collection_name] if @collections[collection_name]
 
       @client ||= get_client
       if @client.database.collection_names.include?(collection_name)
@@ -218,7 +218,7 @@ module Fluent
         collection = @client[collection_name, @collection_options]
       end
 
-      @clients[collection_name] = collection
+      @collections[collection_name] = collection
     end
 
     def format_collection_mode(mode)
