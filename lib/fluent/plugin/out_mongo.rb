@@ -203,9 +203,9 @@ module Fluent
       collection_name = format_collection_name(collection_name)
       return @clients[collection_name] if @clients[collection_name]
 
-      if @db.collection_names.include?(collection_name)
-        collection = @db.collection(collection_name)
       @client ||= get_client
+      if @client.database.collection_names.include?(collection_name)
+        collection = @client[collection_name]
         unless @disable_collection_check
           capped = collection.capped?
           unless @collection_options[:capped] == capped # TODO: Verify capped configuration
@@ -215,7 +215,7 @@ module Fluent
           end
         end
       else
-        collection = @db.create_collection(collection_name, @collection_options)
+        collection = @client[collection_name, @collection_options]
       end
 
       @clients[collection_name] = collection
