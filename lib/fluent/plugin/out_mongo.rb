@@ -269,10 +269,15 @@ module Fluent
       version = nil
 
       begin
-        version = get_connection.command('buildInfo' => 1)['version']
-      rescue Mongo::OperationFailure
+        client = get_client
+        version = client.database.command('buildInfo' => 1)['version']
+      rescue Mongo::Error::OperationFailure
         # fallback for buggy mongod version support
-        version = authenticate(Mongo::MongoClient.new(@host, @port, @connection_options).db('admin')).command('buildInfo' => 1)['version']
+        options = {}
+        options.merge(@connection_options)
+        options[:database] = 'admin'
+        client = Mongo::Client.new(["#{@host}:#{@port}"], options)
+        version = client.database.command('buildInfo' => 1)['version']
       end
 
       version
