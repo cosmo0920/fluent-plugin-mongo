@@ -77,21 +77,13 @@ module Fluent
 
     def run
       loop {
-        cursor = Mongo::Cursor.new(@client, cursor_conf)
-        begin
-          loop {
-            return if @stop
-            
-            cursor = Mongo::Cursor.new(@client, cursor_conf) unless cursor.alive?
-            if doc = cursor.next_document
-              process_document(doc)
-            else
-              sleep @wait_time
-            end
-          }
-        rescue
-          # ignore Mongo::OperationFailuer at CURSOR_NOT_FOUND
+        return if @stop
+        cursor = @collection.find(filter, cursor_type: :tailable)
+        cursor.each do |document|
+          return if @stop
+          process_document(document)
         end
+        sleep @wait_time
       }
     end
 
@@ -171,11 +163,10 @@ module Fluent
       router.emit(tag, time, doc)
     end
 
-    def cursor_conf
-      conf = {}
-      conf[:tailable] = true
-      conf[:selector] = {'_id' => {'$gt' => BSON::ObjectId(@last_id)}} if @last_id
-      conf
+    def filter
+      filter = nil
+      filter = {'_id' => {'$gt' => BSON::ObjectId(@last_id)}} if @last_id
+      filter
     end
 
     # following methods are used when id_store_file is true
