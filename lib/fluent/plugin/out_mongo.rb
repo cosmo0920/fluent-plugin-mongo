@@ -225,11 +225,6 @@ module Fluent
       mode ? 'capped' : 'normal'
     end
 
-    def get_connection
-      db = Mongo::MongoClient.new(@host, @port, @connection_options).db(@database)
-      authenticate(db)
-    end
-
     def get_client
       options = {}
       options.merge(@connection_options)
