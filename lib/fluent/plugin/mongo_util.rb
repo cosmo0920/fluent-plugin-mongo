@@ -1,6 +1,4 @@
 module Fluent
-
-
 module MongoUtil
   def self.included(klass)
     klass.instance_eval {
@@ -8,20 +6,5 @@ module MongoUtil
       config_param :password, :string, :default => nil, :secret => true
     }
   end
-
-  def authenticate(db)
-    unless @user.nil? || @password.nil?
-      begin
-        db.authenticate(@user, @password)
-      rescue Mongo::AuthenticationError => e
-        log.fatal e
-        exit!
-      end
-    end
-
-    db
-  end
 end
-
-
 end
