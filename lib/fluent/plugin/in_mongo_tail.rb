@@ -71,7 +71,7 @@ module Fluent
 
       @stop = true
       @thread.join
-      @client.db.connection.close
+      @collection.database.client.close
       super
     end
 
