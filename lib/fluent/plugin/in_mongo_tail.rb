@@ -59,7 +59,7 @@ module Fluent
     def start
       super
       @file = get_id_store_file if @id_store_file
-      @client = get_capped_collection
+      @collection = get_capped_collection
       @thread = Thread.new(&method(:run))
     end
 
