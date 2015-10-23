@@ -107,8 +107,7 @@ module Fluent
     end
 
     def shutdown
-      # Mongo::Connection checks alive or closed myself
-      @clients.values.each { |client| client.db.connection.close }
+      @client.close
       super
     end
 
