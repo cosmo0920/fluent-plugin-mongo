@@ -99,16 +99,20 @@ module Fluent
 
     def get_capped_collection
       begin
-        db = get_database
-        raise ConfigError, "'#{database_name}.#{@collection}' not found: node = #{node_string}" unless db.collection_names.include?(@collection)
-        collection = db.collection(@collection)
-        raise ConfigError, "'#{database_name}.#{@collection}' is not capped: node = #{node_string}" unless collection.capped?
+        client = get_client
+        unless client.database.collection_names.include?(@collection)
+          raise ConfigError, "'#{client.database.name}.#{@collection}' not found: node = #{node_string}"
+        end
+        collection = client[@collection]
+        unless collection.capped?
+          raise ConfigError, "'#{client.database.name}.#{@collection}' is not capped: node = #{node_string}"
+        end
         collection
-      rescue Mongo::ConnectionFailure => e
-        log.fatal "Failed to connect to 'mongod'. Please restart 'fluentd' after 'mongod' started: #{e}"
+      rescue Mongo::Auth::Unauthorized => e
+        log.fatal "#{e.class}: #{e.message}"
         exit!
-      rescue Mongo::OperationFailure => e
-        log.fatal "Operation failed. Probably, 'mongod' needs an authentication: #{e}"
+      rescue Mongo::Error::OperationFailure => e
+        log.fatal "#{e.class}: #{e.message}"
         exit!
       end
     end
