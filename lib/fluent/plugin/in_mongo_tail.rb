@@ -112,7 +112,7 @@ module Fluent
         exit!
       end
     end
-    
+
     def get_client
       case
       when @database
@@ -125,7 +125,7 @@ module Fluent
         Mongo::Client.new(@url)
       end
     end
-    
+
     def database_name
       case
       when @database
@@ -134,7 +134,7 @@ module Fluent
         Mongo::URIParser.new(@url).db_name
       end
     end
-    
+
     def node_string
       case
       when @database
