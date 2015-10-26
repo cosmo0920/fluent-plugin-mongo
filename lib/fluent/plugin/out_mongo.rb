@@ -136,24 +136,24 @@ module Fluent
     BROKEN_DATA_KEY = '__broken_data'
 
     def operate(collection, records)
-        if @replace_dot_in_key_with
-          records.map! do |r|
-            replace_key_of_hash(r, ".", @replace_dot_in_key_with)
-          end
+      if @replace_dot_in_key_with
+        records.map! do |r|
+          replace_key_of_hash(r, ".", @replace_dot_in_key_with)
         end
-        if @replace_dollar_in_key_with
-          records.map! do |r|
-            replace_key_of_hash(r, /^\$/, @replace_dollar_in_key_with)
-          end
+      end
+      if @replace_dollar_in_key_with
+        records.map! do |r|
+          replace_key_of_hash(r, /^\$/, @replace_dollar_in_key_with)
         end
+      end
 
-        records.each do |record|
-          begin
-            collection.insert_one(record, INSERT_ARGUMENT)
-          rescue Mongo::Error::OperationFailure => e
-            operate_invalid_record(collection, record) unless @ignore_invalid_record
-          end
+      records.each do |record|
+        begin
+          collection.insert_one(record, INSERT_ARGUMENT)
+        rescue Mongo::Error::OperationFailure => e
+          operate_invalid_record(collection, record) unless @ignore_invalid_record
         end
+      end
       records
     end
 
