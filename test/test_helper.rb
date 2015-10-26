@@ -56,7 +56,8 @@ module MongoTestHelper
 
   def teardown_mongod
     if defined?(@@current_mongo_test_class)
-      Mongo::Connection.new('localhost', @@mongod_port).drop_database(MONGO_DB_DB)
+      client = Mongo::Client.new(["localhost:#{@@mongod_port}"])
+      Mongo::Database.new(client, MONGO_DB_DB).drop
     end
     if @@setup_count == self.class.methods.size
       cleanup_mongod_env
