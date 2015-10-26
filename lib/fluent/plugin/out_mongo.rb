@@ -148,11 +148,13 @@ module Fluent
           end
         end
 
-        record_ids, error_records = collection.insert(records, INSERT_ARGUMENT)
-        if !@ignore_invalid_record and error_records.size > 0
-          operate_invalid_records(collection, error_records)
-        end
-      rescue Mongo::OperationFailure => e
+        result = collection.insert_many(records, INSERT_ARGUMENT)
+
+        # TODO: re-enable this.
+        # if !@ignore_invalid_record and error_records.size > 0
+        #   operate_invalid_records(collection, error_records)
+        # end
+      rescue Mongo::Error::OperationFailure => e
         # Probably, all records of _records_ are broken...
         if e.error_code == 13066  # 13066 means "Message contains no documents"
           operate_invalid_records(collection, records) unless @ignore_invalid_record
