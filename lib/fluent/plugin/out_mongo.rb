@@ -148,37 +148,28 @@ module Fluent
           end
         end
 
-        result = collection.insert_many(records, INSERT_ARGUMENT)
-
-        # TODO: re-enable this.
-        # if !@ignore_invalid_record and error_records.size > 0
-        #   operate_invalid_records(collection, error_records)
-        # end
-      rescue Mongo::Error::OperationFailure => e
-        # Probably, all records of _records_ are broken...
-        if e.error_code == 13066  # 13066 means "Message contains no documents"
-          operate_invalid_records(collection, records) unless @ignore_invalid_record
-        else
-          raise e
+        records.each do |record|
+          begin
+            collection.insert_one(record, INSERT_ARGUMENT)
+          rescue Mongo::Error::OperationFailure => e
+            operate_invalid_record(collection, record) unless @ignore_invalid_record
+          end
         end
       end
       records
     end
 
-    def operate_invalid_records(collection, records)
-      converted_records = records.map { |record|
-        new_record = {}
-        new_record[@tag_key] = record.delete(@tag_key) if @include_tag_key
-        new_record[@time_key] = record.delete(@time_key)
-        if @exclude_broken_fields
-          @exclude_broken_fields.each { |key|
-            new_record[key] = record.delete(key)
-          }
-        end
-        new_record[BROKEN_DATA_KEY] = BSON::Binary.new(Marshal.dump(record))
-        new_record
-      }
-      collection.insert(converted_records)
+    def operate_invalid_record(collection, record)
+      new_record = {}
+      new_record[@tag_key] = record.delete(@tag_key) if @include_tag_key
+      new_record[@time_key] = record.delete(@time_key)
+      if @exclude_broken_fields
+        @exclude_broken_fields.each { |key|
+          new_record[key] = record.delete(key)
+        }
+      end
+      new_record[BROKEN_DATA_KEY] = BSON::Binary.new(Marshal.dump(record))
+      collection.insert_one(new_record)
     end
 
     def collect_records(chunk)
