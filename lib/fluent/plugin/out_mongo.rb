@@ -136,7 +136,6 @@ module Fluent
     BROKEN_DATA_KEY = '__broken_data'
 
     def operate(collection, records)
-      begin
         if @replace_dot_in_key_with
           records.map! do |r|
             replace_key_of_hash(r, ".", @replace_dot_in_key_with)
@@ -155,7 +154,6 @@ module Fluent
             operate_invalid_record(collection, record) unless @ignore_invalid_record
           end
         end
-      end
       records
     end
 
