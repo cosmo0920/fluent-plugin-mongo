@@ -12,8 +12,8 @@ class MongoOutputTest < Test::Unit::TestCase
   end
 
   def teardown
-    if defined?(@db) && @db
-      @db.database[collection_name].drop
+    if defined?(@client) && @client
+      @client.database[collection_name].drop
     end
     teardown_mongod
   end
@@ -37,7 +37,7 @@ class MongoOutputTest < Test::Unit::TestCase
     ]
     options = {}
     options[:database] = MONGO_DB_DB
-    @db = Mongo::Client.new(["localhost:#{@@mongod_port}"], options)
+    @client = Mongo::Client.new(["localhost:#{@@mongod_port}"], options)
     Fluent::Test::BufferedOutputTestDriver.new(Fluent::MongoOutput).configure(conf)
   end
 
@@ -96,7 +96,7 @@ class MongoOutputTest < Test::Unit::TestCase
     d.expect_format([time, {'a' => 2, d.instance.time_key => time}].to_msgpack)
     d.run
 
-    assert_equal(2, @db.database[collection_name].count)
+    assert_equal(2, @client.database[collection_name].count)
   end
 
   def emit_documents(d)
@@ -107,7 +107,7 @@ class MongoOutputTest < Test::Unit::TestCase
   end
 
   def get_documents
-    @db.database[collection_name].find().to_a.map { |e| e.delete('_id'); e }
+    @client.database[collection_name].find().to_a.map { |e| e.delete('_id'); e }
   end
 
   def test_write
@@ -179,7 +179,7 @@ class MongoOutputTest < Test::Unit::TestCase
     assert_equal(4, documents.size)
     assert_equal([1, 2], documents.select { |e| e.has_key?('a') }.map { |e| e['a'] }.sort)
     assert_equal(2, documents.select { |e| e.has_key?(Fluent::MongoOutput::BROKEN_DATA_KEY)}.size)
-    assert_equal([3, 4], @db.database[collection_name].find({Fluent::MongoOutput::BROKEN_DATA_KEY => {'$exists' => true}}).map { |doc|
+    assert_equal([3, 4], @client.database[collection_name].find({Fluent::MongoOutput::BROKEN_DATA_KEY => {'$exists' => true}}).map { |doc|
       Marshal.load(doc[Fluent::MongoOutput::BROKEN_DATA_KEY].to_s)['a']
     }.sort)
   end
@@ -228,7 +228,7 @@ class MongoOutputTest < Test::Unit::TestCase
     documents = get_documents
     assert_equal(2, documents.size)
     assert_equal([1, 2], documents.select { |e| e.has_key?('a') }.map { |e| e['a'] }.sort)
-    assert_equal(true, @db.database[collection_name].find({Fluent::MongoOutput::BROKEN_DATA_KEY => {'$exists' => true}}).count.zero?)
+    assert_equal(true, @client.database[collection_name].find({Fluent::MongoOutput::BROKEN_DATA_KEY => {'$exists' => true}}).count.zero?)
   end
 end
 
@@ -242,9 +242,9 @@ class MongoReplOutputTest < MongoOutputTest
 
   def teardown
     @rs.restart_killed_nodes
-    if defined?(@db) && @db
-      @db.database[collection_name].drop
-      @db.close
+    if defined?(@client) && @client
+      @client.database[collection_name].drop
+      @client.close
     end
   end
 
@@ -260,7 +260,7 @@ class MongoReplOutputTest < MongoOutputTest
   end
 
   def create_driver(conf = default_config)
-    @db = Mongo::MongoReplicaSetClient.new(build_seeds(3), :name => @rs.name).db(MONGO_DB_DB)
+    @client = Mongo::MongoReplicaSetClient.new(build_seeds(3), :name => @rs.name).db(MONGO_DB_DB)
     Fluent::Test::BufferedOutputTestDriver.new(Fluent::MongoOutputReplset).configure(conf)
   end
 
