@@ -59,7 +59,7 @@ module Fluent
       retries = 0
       begin
         yield
-      rescue Mongo::ConnectionFailure => e
+      rescue Mongo::Error::OperationFailure => e
         retries += 1
         raise e if retries > @num_retries
 
