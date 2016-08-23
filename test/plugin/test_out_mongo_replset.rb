@@ -1,11 +1,15 @@
 require "helper"
 
 class MongoReplsetOutputTest < ::Test::Unit::TestCase
+  include MongoTestHelper
+
   def setup
     Fluent::Test.setup
+    MongoTestHelper::setup_mongod
   end
 
   def teardown
+    MongoTestHelper::teardown_mongod
   end
 
   def collection_name
@@ -64,13 +68,13 @@ class MongoReplsetOutputTest < ::Test::Unit::TestCase
 
   class ReplisetWriteTest < self
     def setup
-      omit("Replica set setup is too hard in CI.") if ENV['CI']
+      # omit("Replica set setup is too hard in CI.") if ENV['CI']
 
       setup_mongod
     end
 
     def teardown
-      omit("Replica set setup is too hard in CI.") if ENV['CI']
+      # omit("Replica set setup is too hard in CI.") if ENV['CI']
 
       teardown_mongod
     end
